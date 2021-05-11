@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -83,22 +84,34 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 
 	// if the item exists in s3, do a HEAD request against the source
 	if s3ObjLength >= 0 {
-		headRes, err := http.Head(in.srcURL)
-		if err != nil {
-			out.err = fmt.Errorf("failed to execute HEAD request for %q: %w", in.srcURL, err)
-			return
-		}
-		if err := headRes.Body.Close(); err != nil {
-			out.err = fmt.Errorf("failed to close HEAD response body for %q: %w", in.srcURL, err)
-			return
-		}
-		if headRes.StatusCode != 200 {
-			out.err = fmt.Errorf("source URL %q returned HEAD status %03d", in.srcURL, headRes.StatusCode)
-			return
-		}
-		if headRes.ContentLength == s3ObjLength {
-			out.err = nil
-			return // object in s3 is the same length as source, we're done
+		retries := 3
+		for {
+			headRes, err := http.Head(in.srcURL)
+			if err != nil {
+				out.err = fmt.Errorf("failed to execute HEAD request for %q: %w", in.srcURL, err)
+				return
+			}
+			if err := headRes.Body.Close(); err != nil {
+				out.err = fmt.Errorf("failed to close HEAD response body for %q: %w", in.srcURL, err)
+				return
+			}
+			// overloaded
+			if headRes.StatusCode == 504 {
+				time.Sleep(5 * time.Second)
+				if retries > 0 {
+					retries--
+					continue
+				}
+			}
+			if headRes.StatusCode != 200 {
+				out.err = fmt.Errorf("source URL %q returned HEAD status %03d", in.srcURL, headRes.StatusCode)
+				return
+			}
+			if headRes.ContentLength == s3ObjLength {
+				out.err = nil
+				return // object in s3 is the same length as source, we're done
+			}
+			break
 		}
 	}
 
