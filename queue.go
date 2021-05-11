@@ -30,17 +30,17 @@ type queueResult struct {
 
 func queueDrainer(res <-chan *queueResult) {
 	var success, fail int
-	fmt.Fprintf(os.Stderr, "\nStarting queue...\n\n")
+	fmt.Fprintf(os.Stderr, "\nTransfer results:\n")
 	for r := range res {
 		if r.err != nil {
 			fail++
-			fmt.Fprintf(os.Stderr, "error: %v\n\n", r.err)
+			fmt.Fprintf(os.Stderr, "\n%v\n", r.err)
 		} else {
 			success++
 		}
 		fmt.Fprintf(os.Stderr, "\r%d failed, %d succeeded       \r", fail, success)
 	}
-	fmt.Fprintf(os.Stderr, "\n\nNo more results\n")
+	fmt.Fprintf(os.Stderr, "\n\nDone\n\n")
 }
 
 func startQueue(sess *session.Session, xmlin io.ReadSeeker) error {
