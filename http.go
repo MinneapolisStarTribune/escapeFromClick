@@ -6,7 +6,10 @@ import (
 	"net/http"
 )
 
-func curl(w io.Writer, u string) error {
+func curl(w io.WriteSeeker, u string) error {
+	if _, err := w.Seek(0, 0); err != nil {
+		return fmt.Errorf("cannot reset to beginning of file: %w", err)
+	}
 	h, err := http.Get(u)
 	if err != nil {
 		return fmt.Errorf("failed to execute GET request for %q: %w", u, err)

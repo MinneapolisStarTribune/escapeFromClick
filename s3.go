@@ -36,6 +36,10 @@ func getObjectLength(svc *s3.S3, in *queueCmd) (int64, error) {
 }
 
 func putObject(sess *session.Session, in *queueCmd, r io.ReadSeeker) error {
+	if _, err := r.Seek(0, 0); err != nil {
+		return fmt.Errorf("cannot reset to beginning of file: %w", err)
+	}
+
 	upl := s3manager.NewUploader(sess)
 	md := map[string]*string{
 		"original":       &in.srcURL,
