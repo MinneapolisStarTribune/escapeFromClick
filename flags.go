@@ -22,7 +22,6 @@ var dstS3Path string
 var maxThreads int
 var tmpLocation string
 var tagPrefix string
-var stopAfter int
 
 func init() {
 	flag.StringVar(&xmlFile, "xmlfile", "", "XML file to ingest for transfer")
@@ -33,7 +32,6 @@ func init() {
 	flag.StringVar(&tmpLocation, "tmp", os.TempDir(), "Location for storing files until upload")
 	flag.IntVar(&maxThreads, "threads", 1, "Maximum number of items to download/upload in parallel")
 	flag.StringVar(&tagPrefix, "tagPrefix", "clickability", "The namespace for S3 tags assigned to uploaded objects")
-	flag.IntVar(&stopAfter, "stopafter", 5, "Abort everything after this many")
 	flag.Parse()
 
 	if xmlFile == "" {

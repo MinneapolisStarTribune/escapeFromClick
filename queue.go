@@ -38,10 +38,6 @@ func queueDrainer(res <-chan *queueResult) {
 			success++
 		}
 		fmt.Fprintf(os.Stderr, "\r%d failed, %d succeeded       \r", fail, success)
-
-		if fail+success >= stopAfter {
-			panic("did too many")
-		}
 	}
 	fmt.Fprintf(os.Stderr, "\n\nNo more results\n")
 }
