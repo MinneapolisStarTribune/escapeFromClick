@@ -33,7 +33,7 @@ func queueDrainer(res <-chan *queueResult) {
 	for r := range res {
 		if r.err != nil {
 			fail++
-			fmt.Fprintf(os.Stderr, "error: %+v\n\n", r)
+			fmt.Fprintf(os.Stderr, "error: %v\n\n", r.err)
 		} else {
 			success++
 		}
