@@ -123,13 +123,18 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 	}
 	defer tmpf.Close()
 	os.Remove(tmpf.Name()) // immediately unlink temporary file so OS will clean up for us
-	if err := curl(tmpf, in.srcURL); err != nil {
-		out.err = fmt.Errorf("cannot download source file: %w", err)
-		return
-	}
-	if _, err := tmpf.Seek(0, 0); err != nil {
-		out.err = fmt.Errorf("cannot reset to beginning of temporary file: %w", err)
-		return
+	retries := 3
+	for {
+		if err := curl(tmpf, in.srcURL); err != nil {
+			time.Sleep(5 * time.Second)
+			if retries > 0 {
+				retries--
+				continue
+			}
+			out.err = fmt.Errorf("cannot download source file: %w", err)
+			return
+		}
+		break
 	}
 	if err := putObject(sess, in, tmpf); err != nil {
 		out.err = fmt.Errorf("cannot upload to s3: %w", err)
