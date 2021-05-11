@@ -95,8 +95,8 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 				out.err = fmt.Errorf("failed to close HEAD response body for %q: %w", in.srcURL, err)
 				return
 			}
-			// overloaded
-			if headRes.StatusCode == 504 {
+			// server errors should be retried
+			if headRes.StatusCode >= 500 {
 				time.Sleep(5 * time.Second)
 				if retries > 0 {
 					retries--
