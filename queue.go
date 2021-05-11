@@ -122,10 +122,5 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 		out.err = fmt.Errorf("cannot upload to s3: %w", err)
 		return
 	}
-
-	if err := s3PutTags(s3api, in); err != nil {
-		out.err = err
-		return
-	}
 	return
 }

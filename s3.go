@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"strings"
-	"unicode"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -39,65 +37,34 @@ func getObjectLength(svc *s3.S3, in *queueCmd) (int64, error) {
 
 func putObject(sess *session.Session, in *queueCmd, r io.ReadSeeker) error {
 	upl := s3manager.NewUploader(sess)
+	md := map[string]*string{
+		"original":       &in.srcURL,
+		"clickabilityid": &in.tagId,
+	}
+	if len(in.tagTitle) > 0 {
+		md["title"] = &in.tagTitle
+	}
+	if len(in.tagDescription) > 0 {
+		md["description"] = &in.tagDescription
+	}
+	if len(in.tagAuthor) > 0 {
+		md["author"] = &in.tagAuthor
+	}
+	if len(in.tagCredit) > 0 {
+		md["credit"] = &in.tagCredit
+	}
+	if len(in.tagCopyright) > 0 {
+		md["copyright"] = &in.tagCopyright
+	}
+
 	_, err := upl.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(in.destBucket),
-		Key:    aws.String(in.destObjName),
-		Body:   r,
+		Bucket:   aws.String(in.destBucket),
+		Key:      aws.String(in.destObjName),
+		Body:     r,
+		Metadata: md,
 	})
 	if err != nil {
 		return fmt.Errorf("cannot upload into %q: %w", in.destObjName, err)
-	}
-	return nil
-}
-
-// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions
-func s3TagValueFilter(r rune) rune {
-	if unicode.In(r, unicode.Letter, unicode.Number, unicode.Space) {
-		return r
-	}
-	// + - = . _ : / @
-	switch r {
-	case '+', '-', '=', '.', '_', ':', '/', '@':
-		return r
-	}
-
-	return -1
-}
-
-func s3Tag(k, v string) *s3.Tag {
-	t := new(s3.Tag)
-	t.SetKey(fmt.Sprintf("%s:%s", tagPrefix, k))
-	s := strings.Map(s3TagValueFilter, strings.ToValidUTF8(v, ""))
-	if len(s) > 254 {
-		s = strings.ToValidUTF8(s[0:250]+"...", "")
-	}
-	t.SetValue(s)
-	return t
-}
-
-func s3Tagset(in *queueCmd) *s3.Tagging {
-	return &s3.Tagging{
-		TagSet: []*s3.Tag{
-			s3Tag("original", in.srcURL),
-			s3Tag("id", in.tagId),
-			s3Tag("title", in.tagTitle),
-			s3Tag("description", in.tagDescription),
-			s3Tag("author", in.tagAuthor),
-			s3Tag("credit", in.tagCredit),
-			s3Tag("copyright", in.tagCopyright),
-		},
-	}
-}
-
-func s3PutTags(svc *s3.S3, in *queueCmd) error {
-	ts := s3Tagset(in)
-	_, err := svc.PutObjectTagging(&s3.PutObjectTaggingInput{
-		Bucket:  aws.String(in.destBucket),
-		Key:     aws.String(in.destObjName),
-		Tagging: ts,
-	})
-	if err != nil {
-		return fmt.Errorf("cannot tag %q with %#v: %w", in.destObjName, ts, err)
 	}
 	return nil
 }
