@@ -103,6 +103,14 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 					continue
 				}
 			}
+			// zero-length files aren't a thing
+			if headRes.ContentLength == 0 {
+				time.Sleep(1 * time.Second)
+				if retries > 0 {
+					retries--
+					continue
+				}
+			}
 			if headRes.StatusCode != 200 {
 				out.err = fmt.Errorf("source URL %q returned HEAD status %03d", in.srcURL, headRes.StatusCode)
 				return
