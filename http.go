@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func curl(w io.WriteSeeker, u string) error {
+func curl(w io.WriteSeeker, u string, expect int64) error {
 	if _, err := w.Seek(0, 0); err != nil {
 		return fmt.Errorf("cannot reset to beginning of file: %w", err)
 	}
@@ -28,6 +28,10 @@ func curl(w io.WriteSeeker, u string) error {
 	if h.ContentLength > 0 && nbytes != h.ContentLength {
 		return fmt.Errorf("copying contents of %q copied %d bytes but we should have had %d",
 			u, nbytes, h.ContentLength)
+	}
+	if expect > 0 && nbytes != expect {
+		return fmt.Errorf("copying contents of %q copied %d bytes but we expected %d",
+			u, nbytes, expect)
 	}
 	return nil
 }
