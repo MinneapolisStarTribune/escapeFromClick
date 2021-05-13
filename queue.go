@@ -142,6 +142,11 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 				out.skipped = true
 				return // object in s3 is the same length as source, we're done
 			} else if headRes.ContentLength < s3ObjLength {
+				time.Sleep(1 * time.Second)
+				if retries > 0 {
+					retries--
+					continue
+				}
 				out.warn = fmt.Errorf("skipping: source %q is smaller than s3 content (%d < %d)",
 					in.srcURL, headRes.ContentLength, s3ObjLength)
 				out.skipped = true
