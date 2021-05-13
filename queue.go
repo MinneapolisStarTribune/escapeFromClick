@@ -57,6 +57,8 @@ func queueDrainer(res <-chan *queueResult) {
 			total, failed, warned, downloaded, changed, skipped)
 	}
 	fmt.Fprintf(os.Stdout, "\nDone\n")
+	fmt.Fprintf(os.Stdout, "Final: %d total, %d failed, %d warned, %d new, %d changed, %d skipped\n",
+		total, failed, warned, downloaded, changed, skipped)
 }
 
 func startQueue(sess *session.Session, xmlin io.ReadSeeker) error {
