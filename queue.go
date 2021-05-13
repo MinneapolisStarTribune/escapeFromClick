@@ -102,7 +102,7 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 	var expectLength int64
 	// if the item exists in s3, do a HEAD request against the source
 	if s3ObjLength > 0 {
-		retries := 3
+		retries := 4
 		for {
 			headRes, err := http.Head(in.srcURL)
 			if err != nil {
@@ -161,7 +161,7 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 	}
 	defer tmpf.Close()
 	os.Remove(tmpf.Name()) // immediately unlink temporary file so OS will clean up for us
-	retries := 3
+	retries := 4
 	for {
 		if err := curl(tmpf, in.srcURL, expectLength); err != nil {
 			time.Sleep(5 * time.Second)
