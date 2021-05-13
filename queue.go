@@ -35,15 +35,15 @@ type queueResult struct {
 
 func queueDrainer(res <-chan *queueResult) {
 	var total, downloaded, changed, skipped, failed, warned int
-	fmt.Fprintf(os.Stdout, "\nTransfer results:\n")
+	fmt.Fprintf(os.Stdout, "Transfer results:\n")
 	for r := range res {
 		total++
 		if r.err != nil {
 			failed++
-			fmt.Fprintf(os.Stdout, "\r%s: %v\n", r.cmd.tagId, r.err)
+			fmt.Fprintf(os.Stdout, "%s: %v\n", r.cmd.tagId, r.err)
 		} else if r.warn != nil {
 			warned++
-			fmt.Fprintf(os.Stdout, "\r%s: %v\n", r.cmd.tagId, r.warn)
+			fmt.Fprintf(os.Stdout, "%s: %v\n", r.cmd.tagId, r.warn)
 		}
 
 		if r.changed {
@@ -56,7 +56,7 @@ func queueDrainer(res <-chan *queueResult) {
 		fmt.Fprintf(os.Stderr, "\r%d total, %d failed, %d warned, %d new, %d changed, %d skipped       \r",
 			total, failed, warned, downloaded, changed, skipped)
 	}
-	fmt.Fprintf(os.Stdout, "\n\nDone\n\n")
+	fmt.Fprintf(os.Stdout, "\nDone\n")
 }
 
 func startQueue(sess *session.Session, xmlin io.ReadSeeker) error {
