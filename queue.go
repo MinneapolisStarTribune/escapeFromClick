@@ -126,12 +126,14 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 					retries--
 					continue
 				}
-				out.err = fmt.Errorf("source URL %q returned HEAD size %d", in.srcURL, headRes.ContentLength)
+				out.warn = fmt.Errorf("source URL %q returned HEAD size %d", in.srcURL, headRes.ContentLength)
+				out.skipped = true
 				return
 			}
 			if headRes.StatusCode != 200 {
 				out.warn = fmt.Errorf("source URL %q returned HEAD status %03d", in.srcURL, headRes.StatusCode)
-				// we can just try download it in any case
+				out.skipped = true
+				return
 			} else if headRes.ContentLength == s3ObjLength {
 				out.err = nil
 				out.skipped = true
@@ -139,6 +141,8 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 			} else if headRes.ContentLength < s3ObjLength {
 				out.warn = fmt.Errorf("source %q is smaller than s3 content (%d < %d)",
 					in.srcURL, headRes.ContentLength, s3ObjLength)
+				out.skipped = true
+				return
 			}
 			out.changed = true
 			break
