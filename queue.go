@@ -136,6 +136,7 @@ func queueItem(sess *session.Session, in *queueCmd) (out *queueResult) {
 				return
 			} else if headRes.ContentLength == s3ObjLength {
 				out.err = nil
+				out.warn = nil
 				out.skipped = true
 				return // object in s3 is the same length as source, we're done
 			} else if headRes.ContentLength < s3ObjLength {
