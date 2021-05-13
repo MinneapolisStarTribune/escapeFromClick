@@ -34,9 +34,10 @@ type queueResult struct {
 }
 
 func queueDrainer(res <-chan *queueResult) {
-	var downloaded, changed, skipped, failed, warned int
+	var total, downloaded, changed, skipped, failed, warned int
 	fmt.Fprintf(os.Stderr, "\nTransfer results:\n")
 	for r := range res {
+		total++
 		if r.err != nil {
 			failed++
 			fmt.Fprintf(os.Stderr, "\r%v\n%+v\n", r.err, *r.cmd)
@@ -52,8 +53,8 @@ func queueDrainer(res <-chan *queueResult) {
 		} else if r.succeeded {
 			downloaded++
 		}
-		fmt.Fprintf(os.Stderr, "\r%d failed, %d warned, %d new, %d changed, %d skipped       \r",
-			failed, warned, downloaded, changed, skipped)
+		fmt.Fprintf(os.Stderr, "\r%d total, %d failed, %d warned, %d new, %d changed, %d skipped       \r",
+			total, failed, warned, downloaded, changed, skipped)
 	}
 	fmt.Fprintf(os.Stderr, "\n\nDone\n\n")
 }
