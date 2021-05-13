@@ -40,10 +40,10 @@ func queueDrainer(res <-chan *queueResult) {
 		total++
 		if r.err != nil {
 			failed++
-			fmt.Fprintf(os.Stderr, "\r%v\n%+v\n", r.err, *r.cmd)
+			fmt.Fprintf(os.Stderr, "\r%05d: %v\n", total, r.err)
 		} else if r.warn != nil {
 			warned++
-			fmt.Fprintf(os.Stderr, "\r%v\n%+v\n", r.warn, *r.cmd)
+			fmt.Fprintf(os.Stderr, "\r%05d: %v\n", total, r.warn)
 		}
 
 		if r.changed {
