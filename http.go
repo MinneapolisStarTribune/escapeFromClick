@@ -25,5 +25,9 @@ func curl(w io.WriteSeeker, u string) error {
 	if nbytes == 0 {
 		return fmt.Errorf("copying contents of %q copied zero bytes", u)
 	}
+	if h.ContentLength > 0 && nbytes != h.ContentLength {
+		return fmt.Errorf("copying contents of %q copied %d bytes but we should have had %d",
+			u, nbytes, h.ContentLength)
+	}
 	return nil
 }
